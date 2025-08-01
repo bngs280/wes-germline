@@ -403,7 +403,9 @@ import re
 
 import numpy as np
 import pandas as pd
-
+from tqdm import tqdm  # For progress tracking
+import time
+import requests
 def parse_args():
     p = argparse.ArgumentParser(
         description="Merge VEP-annotated table, raw VCF, and ClinGen HI/TS data"
@@ -447,6 +449,43 @@ def read_vep(vep_file):
     exclude = {"Location", "Uploaded_variation", "Allele", "UPLOADED_ALLELE"}
     cols = [c for c in df.columns if c not in exclude]
     df.loc[:, cols] = df.loc[:, cols].replace("-", np.nan)
+    # 2. Enhanced PubMed ID fetcher
+    def get_pmids_from_litvar(rsid):
+        """Fetches PMIDs for a given RSID with robust error handling"""
+        if not isinstance(rsid, str) or not rsid.startswith('rs'):
+            return "NA"
+        
+        url = f"https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant/get/litvar%40{rsid}%23%23/publications"
+        try:
+            time.sleep(0.3)  # Rate limiting protection
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                pmids = [str(p) for p in data.get("pmids", []) if str(p).isdigit()]
+                return "|".join(pmids) if pmids else "NA"
+            return "NA"
+        except Exception as e:
+            print(f"Error fetching {rsid}: {str(e)}")
+            return "NA"
+
+    # 3. Process Existing_variation column (column index 12)
+    rsid_column = df.columns[12]  # Using index 12 as specified
+    print(f"Processing {len(df)} variants from column '{rsid_column}'")
+    
+    # Initialize progress bar
+    tqdm.pandas(desc="Fetching PubMed IDs")
+    
+    # Extract first RSID from comma-separated values and fetch PMIDs
+    df['pubmed_id'] = df[rsid_column].progress_apply(
+        lambda x: get_pmids_from_litvar(str(x).split(',')[0].strip()) if pd.notna(x) else "NA"
+    )
+
+    # 4. Show results summary
+    success_count = (df['pubmed_id'] != "NA").sum()
+    print(f"\nFound PubMed IDs for {success_count}/{len(df)} variants ({success_count/len(df):.1%})")
+    
+    #return df
+
     # adjust Location to CHROM:POS or CHROM:POS-1
     def adjust_location(r):
         try:
@@ -743,7 +782,7 @@ def main():
         "MutationTaster_score", "SIFT4G_score",
         "SIFT4G_pred", "REVEL_score", "GERP++_NR", "GERP++_RS",
         "GERP++_RS_rankscore", "gnomAD4.1_joint_SAS_AF", "RegeneronME_ALL_AF",
-        "RegeneronME_E_ASIA_AF", "RegeneronME_SAS_AF", "ACMGC_Classification", "ACMG_Criteria"
+        "RegeneronME_E_ASIA_AF", "RegeneronME_SAS_AF", "ACMGC_Classification", "ACMG_Criteria", "pubmed_id"
     ]
     #"LRT_pred", "LRT_score","ada_score", "rf_score", 
     merged_df= merged_df[desired_columns]
