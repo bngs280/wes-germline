@@ -1,0 +1,14 @@
+sudo docker run -it \
+	    -v /home/vgenomics/Germline/dockerdata/VEP_data_Cache:/usr/src/app/vepC \
+	    -v /home/vgenomics/Germline/dockerdata/vep_pluginDB:/usr/src/app/vepDB \
+	    -v /home/vgenomics/Germline/dockerdata/reference:/usr/src/app/ref38/ \
+	    -v /home/vgenomics/rareindia/proband:/usr/src/app/input \
+	    -v /home/vgenomics/rareindia/proband/Suraj_output:/usr/src/app/output \
+	    -v /home/vgenomics/Germline/Pipeline/Mode_branch/nextflow.config:/usr/src/app/nextflow.config \
+	    -v /home/vgenomics/Germline/Pipeline/Mode_branch/config.json:/usr/src/app/config.json \
+	    -v /home/vgenomics/Germline/dockerdata/vep_Plugins:/usr/src/app/vepPlugins \
+	    -v /home/vgenomics/Germline/Pipeline/Mode_branch/main.nf:/usr/src/app/main.nf \
+	    -v /home/vgenomics/rareindia/proband/Suraj_output/work:/usr/src/app/work \
+	    -v /home/vgenomics/Germline/Pipeline/Mode_branch/resumeNF.sh:/usr/src/app/resumeNF.sh \
+	    -v /home/vgenomics/Germline/Pipeline/Mode_branch/modules:/usr/src/app/modules \
+	    -v /home/vgenomics/rareindia/proband/Suraj_output/.nextflow:/usr/src/app/.nextflow germline_pipeline:1.2 /usr/src/app/resumeNF.sh
