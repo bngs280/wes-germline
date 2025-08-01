@@ -1,0 +1,18 @@
+{
+    "genome": "hg38",
+    "outdir": "/usr/src/app/output",
+    "data_dir": "/usr/src/app/input",
+    "platform": "illumina_pe",
+    "input_type": "fastq",
+    "vcf_type": "snv",
+    "mode": "P2G",
+    "resume": true,
+    "gender": "male",
+    "frequency_column": "SAS",
+    "phenotypes": ["HP:0000969", "HP:0100539", "HP:0000968", "HP:0001541", "HP:0002240", "HP:0001744", "HP:0000980", "HP:0001903", "HP:0008282", "HP:0003077", "HP:0000821", "HP:0010729", "HP:0001631", "HP:0001945"],
+    "skip_snv": false,
+    "skip_sv": false,
+    "skip_cnv": false,
+    "skip_mito": true,
+    "secondary_find": true
+}
